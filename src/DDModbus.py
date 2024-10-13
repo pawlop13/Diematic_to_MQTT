@@ -231,7 +231,8 @@ class DDModbus:
 			return(data);
 			
 		except socket.error as exc:
-			self.logger.warning('No answer to masterReadAnalog');
+			#self.logger.warning('No answer to masterReadAnalog');
+			self.logger.critical('No answer to masterReadAnalog');
 			return;
 			
 	def masterWriteAnalog(self,modbusAddress,regAddress,data):
