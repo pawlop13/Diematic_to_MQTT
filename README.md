@@ -1,5 +1,9 @@
 <h2>Making of a MQTT interface for a De Dietrich boiler fitted with a Diematic 3 regulator</h2>
+<<<<<<< HEAD
+Test 2
+=======
 
+>>>>>>> parent of e15a86e (Update README.md)
 The goal is to be able to control boiler's general setting with a smartphone using a MQTT client or through a domotic software.
 
 Reminder : Diematic 3 regulator has a built-in control board like :
