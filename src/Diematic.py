@@ -37,6 +37,12 @@ class DDREGISTER(IntEnum):
 	MODE_B=26;
 	TEMP_AMB_B=27;
 	TCALC_B=32;
+	CONS_JOUR_C=35;
+	CONS_NUIT_C=36;
+	CONS_ANTIGEL_C=37;
+	MODE_C=38;
+	TEMP_AMB_C=39;
+	TCALC_C=44;
 	CONS_ECS=59;
 	TEMP_ECS=62;
 	TEMP_CHAUD=75;
@@ -54,6 +60,12 @@ class DDREGISTER(IntEnum):
 	BOILER_TYPE=457;
 	PUMP_POWER=463;
 	ALARME=465;
+	#boiler active mode
+	BOILER_ACT_MODE=644;
+	 #Antifreeze  duration
+	NB_JOUR_ANTIGEL_A=721;
+	NB_JOUR_ANTIGEL_B=724;
+	NB_JOUR_ANTIGEL_C=727;
 	
 #This class allow to read/write parameters to Diematic regulator with the helo of a RS485/TCPIP converter
 #refresh of attributes From regulator is done roughly every minute
@@ -88,6 +100,7 @@ class Diematic:
 		#attribute allowing to force circuit to be enable
 		self.forceCircuitA=False;
 		self.forceCircuitB=False;
+		self.forceCircuitC=False;
 		
 		#overDriftCounter
 		#this variable to count successive excess of boiler clock
@@ -99,7 +112,8 @@ class Diematic:
 		#queues for specific Mode register request
 		self.zoneAModeUpdateRequest=queue.Queue();
 		self.zoneBModeUpdateRequest=queue.Queue();
-		self.hotWaterModeUpdateRequest=queue.Queue();	
+		self.zoneCModeUpdateRequest=queue.Queue();
+		self.hotWaterModeUpdateRequest=queue.Queue();
 		
 		#dictionnary used to save registers data read from the regulator
 		self.registers=dict();
@@ -155,6 +169,20 @@ class Diematic:
 		self._zoneBDayTargetTemp=None;
 		self._zoneBNightTargetTemp=None;
 		self._zoneBAntiiceTargetTemp=None;
+		# area C
+		self.zoneCTemp=None;
+		self._zoneCMode=None;
+		self.zoneCPump=None;
+		self._zoneCDayTargetTemp=None;
+		self._zoneCNightTargetTemp=None;
+		self._zoneCAntiiceTargetTemp=None;	
+		# boiler active mode (4-summer, 5-winter, other to be investigated)
+		self.boilerActMode=None;
+		#antifreeze duration in days	
+		self.AntifreezeDays=None;
+		self.zoneAAntifreezeDays=None;
+		self.zoneBAntifreezeDays=None;
+		self.zoneCAntifreezeDays=None;
 		
 	def initRegulator(self):
 		#RS485 converter connexion init
@@ -245,7 +273,37 @@ class Diematic:
 			#register structure creation, only 0.5 multiple are usable, temp is in tenth of degree
 			reg=DDModbus.RegisterSet(DDREGISTER.CONS_JOUR_B.value,[min(max(round(2*x)*5,TEMP_MIN_INT*10),TEMP_MAX_INT*10)]);	
 			self.regUpdateRequest.put(reg);
+	
+	@property
+	def zoneCAntiiceTargetTemp(self):
+			return self._zoneCAntiiceTargetTemp;
+			
+	@zoneCAntiiceTargetTemp.setter
+	def zoneCAntiiceTargetTemp(self,x):
+			#register structure creation, only 0.5 multiple are usable, temp is in tenth of degree
+			reg=DDModbus.RegisterSet(DDREGISTER.CONS_ANTIGEL_C.value,[min(max(round(2*x)*5,TEMP_MIN_INT*10),TEMP_MAX_INT*10)]);
+			self.regUpdateRequest.put(reg);
 
+	@property
+	def zoneCNightTargetTemp(self):
+			return self._zoneCNightTargetTemp;
+			
+	@zoneCNightTargetTemp.setter
+	def zoneCNightTargetTemp(self,x):
+			#register structure creation, only 0.5 multiple are usable, temp is in tenth of degree
+			reg=DDModbus.RegisterSet(DDREGISTER.CONS_NUIT_C.value,[min(max(round(2*x)*5,TEMP_MIN_INT*10),TEMP_MAX_INT*10)]);
+			self.regUpdateRequest.put(reg);
+			
+	@property
+	def zoneCDayTargetTemp(self):
+			return self._zoneCDayTargetTemp;
+			
+	@zoneCDayTargetTemp.setter
+	def zoneCDayTargetTemp(self,x):
+			#register structure creation, only 0.5 multiple are usable, temp is in tenth of degree
+			reg=DDModbus.RegisterSet(DDREGISTER.CONS_JOUR_C.value,[min(max(round(2*x)*5,TEMP_MIN_INT*10),TEMP_MAX_INT*10)]);
+			self.regUpdateRequest.put(reg);	
+	
 	@property
 	def zoneAMode(self):
 			return self._zoneAMode;
@@ -288,6 +346,28 @@ class Diematic:
 			self.zoneBModeUpdateRequest.put(2);
 		elif (x=='ANTIGEL'):
 			self.zoneBModeUpdateRequest.put(1);
+	
+	@property
+	def zoneCMode(self):
+			return self._zoneCMode;
+			
+	@zoneCMode.setter
+	def zoneCMode(self,x):
+		
+		#request mode C register change depending mode requested
+		self.logger.debug('zone C mode requested:'+str(x));	
+		if (x=='AUTO'):
+			self.zoneCModeUpdateRequest.put(8);
+		elif (x=='TEMP JOUR'):
+			self.zoneCModeUpdateRequest.put(36);
+		elif (x=='TEMP NUIT'):
+			self.zoneCModeUpdateRequest.put(34);
+		elif (x=='PERM JOUR'):
+			self.zoneCModeUpdateRequest.put(4);
+		elif (x=='PERM NUIT'):
+			self.zoneCModeUpdateRequest.put(2);
+		elif (x=='ANTIGEL'):
+			self.zoneCModeUpdateRequest.put(1);	
 			
 	@property
 	def hotWaterMode(self):
@@ -354,6 +434,16 @@ class Diematic:
 		self.ionizationCurrent=self.float10(self.registers[DDREGISTER.IONIZATION_CURRENT]);
 		self.fanSpeed=self.registers[DDREGISTER.FAN_SPEED];
 		self.burnerStatus=(self.registers[DDREGISTER.BASE_ECS] & 0x08) >>3;
+
+		#boiler active mode
+		self.boilerActMode=self.registers[DDREGISTER.BOILER_ACT_MODE];
+
+		#antifreeze duration		
+		self.AntifreezeDays=self.registers[DDREGISTER.NB_JOUR_ANTIGEL];
+		self.zoneAAntifreezeDays=self.registers[DDREGISTER.NB_JOUR_ANTIGEL_A];
+		self.zoneBAntifreezeDays=self.registers[DDREGISTER.NB_JOUR_ANTIGEL_B];
+		self.zoneCAntifreezeDays=self.registers[DDREGISTER.NB_JOUR_ANTIGEL_C];
+
 		#burner power calculation with fanspeed and ionization current
 		if (self.ionizationCurrent is not None):
 			self.burnerPower=round((self.registers[DDREGISTER.FAN_SPEED] / FAN_SPEED_MAX)*100) if (self.ionizationCurrent>0) else 0;
@@ -408,7 +498,7 @@ class Diematic:
 			elif (modeA==2):
 				self._zoneAMode='PERM NUIT';
 			elif (modeA==1):
-				self._zoneAMode='ANTIGEL';			
+				self._zoneAMode='ANTIGEL';
 			self.zoneAPump=(self.registers[DDREGISTER.BASE_ECS] & 0x10) >>4;
 			self.pumpPower=self.registers[DDREGISTER.PUMP_POWER] if (self.zoneAPump==1) else 0;
 			self._zoneADayTargetTemp=self.float10(self.registers[DDREGISTER.CONS_JOUR_A]);
@@ -452,6 +542,34 @@ class Diematic:
 			self._zoneBNightTargetTemp=None;
 			self._zoneBAntiiceTargetTemp=None;
 
+		#Area C
+		self.zoneCTemp=self.float10(self.registers[DDREGISTER.TEMP_AMB_C]);
+		if ( (self.zoneCTemp is not None) or self.forceCircuitC):
+			modeC=self.registers[DDREGISTER.MODE_C]& 0x2F;
+			if (modeC==8):
+				self._zoneCMode='AUTO';
+			elif (modeC==36):
+				self._zoneCMode='TEMP JOUR';
+			elif (modeC==34):
+				self._zoneCMode='TEMP NUIT';
+			elif (modeC==4):
+				self._zoneCMode='PERM JOUR';
+			elif (modeC==2):
+				self._zoneCMode='PERM NUIT';
+			elif (modeC==1):
+				self._zoneCMode='ANTIGEL';
+				
+			self.zoneCPump=(self.registers[DDREGISTER.OPTIONS_B_C] & 0x10) >>4;
+			self._zoneCDayTargetTemp=self.float10(self.registers[DDREGISTER.CONS_JOUR_C]);
+			self._zoneCNightTargetTemp=self.float10(self.registers[DDREGISTER.CONS_NUIT_C]);
+			self._zoneCAntiiceTargetTemp=self.float10(self.registers[DDREGISTER.CONS_ANTIGEL_C]);
+
+		else:
+			self._zoneCMode=None;
+			self.zoneCPump=None;
+			self._zoneCDayTargetTemp=None;
+			self._zoneCNightTargetTemp=None;
+			self._zoneCAntiiceTargetTemp=None;
 		self.updateCallback();
 
 

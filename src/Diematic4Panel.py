@@ -81,6 +81,26 @@ class Diematic4Panel(Diematic):
 		#		regLine='';
 
 		#print('==========================================')
+		#Bolier active mode , update register 644->650
+		reg=self.modBusInterface.masterReadAnalog(self.regulatorAddress,644,7);	
+		if (reg is not None):
+			self.registers.update(reg);
+		else:
+			return(False);
+	
+		#Bolier mode , update register 653->673
+		reg=self.modBusInterface.masterReadAnalog(self.regulatorAddress,653,20);	
+		if (reg is not None):
+			self.registers.update(reg);
+		else:
+			return(False);
+
+		#Zone antifreeze duration, update register 721->729
+		reg=self.modBusInterface.masterReadAnalog(self.regulatorAddress,721,9);	
+		if (reg is not None):
+			self.registers.update(reg);
+		else:
+			return(False);
 		return(True);
 
 
@@ -180,6 +200,59 @@ class Diematic4Panel(Diematic):
 				#request refresh
 				self.refreshRequest=True;					
 
+#this property is used by the Modbus loop to set register dedicated to Mode C and hotwater mode (in case of usage of C area)					
+	def modeCUpdate(self):
+		#if mode C register update request is pending
+		if (not(self.zoneCModeUpdateRequest.empty()) or (not(self.hotWaterModeUpdateRequest.empty()) and (self.zoneCMode))):
+			#get current mode
+			currentMode=self.modBusInterface.masterReadAnalog(self.regulatorAddress,DDREGISTER.MODE_C.value,1);
+			#in case of success
+			if (currentMode):
+				mode=currentMode[DDREGISTER.MODE_C];
+				self.logger.info('Mode C current value :'+str(mode));
+				
+				#update mode with mode requests					
+				if (not(self.zoneCModeUpdateRequest.empty())):
+					mode= (mode & 0x50) | self.zoneCModeUpdateRequest.get();
+					
+				if (not(self.hotWaterModeUpdateRequest.empty()) and (self.zoneCMode)):
+					mode= (mode & 0x2F) | self.hotWaterModeUpdateRequest.get();
+
+				self.logger.info('Mode C next value :'+str(mode));
+				self.logger.info('TEST: before mode IF');
+				#specific case for antiice request
+				#following write procedure is an empirical solution to have remote control refresh while updating mode
+				if (mode==1):
+					#set antiice day number to 1
+					#TOREMOVE self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.NB_JOUR_ANTIGEL.value,[1]);
+					#TOREMOVE time.sleep(0.5);
+					#set antiice day number to 0
+					self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.NB_JOUR_ANTIGEL.value,[0]);
+					#set antiice day number to 1
+					#self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.NB_JOUR_ANTIGEL_C.value,[1]);
+					#set mode B number to requested value
+					self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.MODE_C.value,[mode]);
+									
+				#general case
+				#following write procedure is an empirical solution to have remote control refresh while updating mode
+				else:				
+					#set mode C
+					self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.MODE_C.value,[mode]);
+					#set antiice day number to 1
+					#TOREMOVE self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.NB_JOUR_ANTIGEL.value,[1]);
+					#set mode B again
+					#self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.MODE_B.value,[mode]);
+					#TOREMOVE time.sleep(0.5);
+					#set mode B again
+					#TOREMOVE self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.MODE_B.value,[mode]);
+					#set antiice day number to 0
+					self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.NB_JOUR_ANTIGEL.value,[0]);
+					#set antiice day number to 1
+					#self.modBusInterface.masterWriteAnalog(self.regulatorAddress,DDREGISTER.NB_JOUR_ANTIGEL_C.value,[1]);
+			
+				#request refresh
+				self.refreshRequest=True;
+
 #modbus loop, shall run in a specific thread. Allow to exchange register values with the Diematic regulator
 	def loop(self):
 		#parameter validity duration in seconds after expiration of period
@@ -201,6 +274,9 @@ class Diematic4Panel(Diematic):
 
 				#mode B register update if needed
 				self.modeBUpdate();
+
+				#mode C register update if needed
+				self.modeCUpdate();
 
 				#while general register update request are pending
 				while not(self.regUpdateRequest.empty()):
