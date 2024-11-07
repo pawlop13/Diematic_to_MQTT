@@ -219,7 +219,7 @@ class Diematic4Panel(Diematic):
 					mode= (mode & 0x2F) | self.hotWaterModeUpdateRequest.get();
 
 				self.logger.info('Mode C next value :'+str(mode));
-				self.logger.info('TEST: before mode IF');
+
 				#specific case for antiice request
 				#following write procedure is an empirical solution to have remote control refresh while updating mode
 				if (mode==1):
