@@ -559,7 +559,7 @@ class Diematic:
 			elif (modeC==1):
 				self._zoneCMode='ANTIGEL';
 				
-			self.zoneCPump=(self.registers[DDREGISTER.OPTIONS_B_C] & 0x10) >>5;
+			self.zoneCPump=(self.registers[DDREGISTER.OPTIONS_B_C] & 0x20) >>5;
 			self._zoneCDayTargetTemp=self.float10(self.registers[DDREGISTER.CONS_JOUR_C]);
 			self._zoneCNightTargetTemp=self.float10(self.registers[DDREGISTER.CONS_NUIT_C]);
 			self._zoneCAntiiceTargetTemp=self.float10(self.registers[DDREGISTER.CONS_ANTIGEL_C]);
