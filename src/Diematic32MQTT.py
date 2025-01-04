@@ -74,6 +74,8 @@ def diematicPublish(self):
 	buffer.update('ionizationCurrent',floatValue(self.ionizationCurrent));
 	buffer.update('fanSpeed',intValue(self.fanSpeed));
 	buffer.update('burnerStatus',intValue(self.burnerStatus));
+	buffer.update('pumpBoiler',intValue(self.pumpBoiler));
+	buffer.update('pumpAuxiliary',intValue(self.pumpAuxiliary));
 	buffer.update('pumpPower',intValue(self.pumpPower));
 	buffer.update('alarm',json.dumps(self.alarm) if self.alarm is not None else '');
 	
@@ -138,6 +140,8 @@ def haSendDiscoveryMessages(client, userdata, message):
 		hassio.addSensor('ionization_current',"Courant Ionisation",'current','ionizationCurrent',None,"µA");	
 		hassio.addSensor('fan_speed',"Vitesse Ventilateur",None,'fanSpeed',None,"RPM");	
 		hassio.addBinarySensor('burner_status',"Etat Bruleur",None,'burnerStatus',"1","0");	
+		hassio.addBinarySensor('pump_boiler',"Pump Boiler",None,'pumpBoiler',"1","0");
+		hassio.addBinarySensor('pump_auxiliary',"Pump Auxiliary",None,'pumpAuxiliary',"1","0");
 		hassio.addSensor('pump_power',"Puissance Pompe",'power_factor','pumpPower',None,"%");
 		hassio.addSensor('alarm',"Etat",None,'alarm',"{{ value_json.txt}}",None);
 		hassio.addSensor('alarm_id',"N° Erreur",None,'alarm',"{{ value_json.id}}",None);

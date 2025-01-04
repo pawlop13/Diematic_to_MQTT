@@ -150,6 +150,8 @@ class Diematic:
 		self.fanSpeed=None;
 		self.ionizationCurrent=None
 		self.burnerStatus=None;
+		self.pumpBoiler=None;
+		self.pumpAuxiliary=None;
 		self.pumpPower=None;
 		self.alarm=None;
 		self.hotWaterPump=None;
@@ -434,6 +436,8 @@ class Diematic:
 		self.ionizationCurrent=self.float10(self.registers[DDREGISTER.IONIZATION_CURRENT]);
 		self.fanSpeed=self.registers[DDREGISTER.FAN_SPEED];
 		self.burnerStatus=(self.registers[DDREGISTER.BASE_ECS] & 0x08) >>3;
+		self.pumpBoiler=(self.registers[DDREGISTER.BASE_ECS] & 0x02) >>1;
+		self.pumpAuxiliary=(self.registers[DDREGISTER.BASE_ECS] & 0x01);
 
 		#boiler active mode
 		self.boilerActMode=self.registers[DDREGISTER.BOILER_ACT_MODE];
