@@ -66,6 +66,9 @@ class DDREGISTER(IntEnum):
 	NB_JOUR_ANTIGEL_A=721;
 	NB_JOUR_ANTIGEL_B=724;
 	NB_JOUR_ANTIGEL_C=727;
+	#boiler power 
+	BOILER_POWER_NEW=613;
+
 	
 #This class allow to read/write parameters to Diematic regulator with the helo of a RS485/TCPIP converter
 #refresh of attributes From regulator is done roughly every minute
@@ -146,6 +149,7 @@ class Diematic:
 		self.returnTemp=None;
 		self.waterPressure=None;
 		self.burnerPower=None;
+		self.burnerPowerNew=None;
 		self.smokeTemp=None;
 		self.fanSpeed=None;
 		self.ionizationCurrent=None
@@ -476,6 +480,9 @@ class Diematic:
 		else:
 			self.alarm['txt']='Défaut inconnu';
 		
+		#burner power from register Diematic iSystem	
+		self.burnerPowerNew=self.registers[DDREGISTER.BOILER_POWER_NEW];
+
 		#hotwater
 		self.hotWaterPump=(self.registers[DDREGISTER.BASE_ECS] & 0x20) >>5;
 		self.hotWaterTemp=self.float10(self.registers[DDREGISTER.TEMP_ECS]);

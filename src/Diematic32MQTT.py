@@ -70,6 +70,7 @@ def diematicPublish(self):
 	buffer.update('returnTemp',floatValue(self.returnTemp));
 	buffer.update('waterPressure',floatValue(self.waterPressure));
 	buffer.update('power',intValue(self.burnerPower));
+	buffer.update('power_new',intValue(self.burnerPowerNew));
 	buffer.update('smokeTemp',floatValue(self.smokeTemp));
 	buffer.update('ionizationCurrent',floatValue(self.ionizationCurrent));
 	buffer.update('fanSpeed',intValue(self.fanSpeed));
@@ -136,6 +137,7 @@ def haSendDiscoveryMessages(client, userdata, message):
 		hassio.addSensor('return_temp',"Température Retour",'temperature','returnTemp',None,"°C");
 		hassio.addSensor('water_pressure',"Pression d'eau",'pressure','waterPressure',None,"bar");
 		hassio.addSensor('power',"Puissance",'power_factor','power',None,"%");
+		hassio.addSensor('power new',"Puissance new",'power_factor_new','power_new',None,"%");
 		hassio.addSensor('smoke_temp',"Température Fumées",'temperature','smokeTemp',None,"°C");
 		hassio.addSensor('ionization_current',"Courant Ionisation",'current','ionizationCurrent',None,"µA");	
 		hassio.addSensor('fan_speed',"Vitesse Ventilateur",None,'fanSpeed',None,"RPM");	

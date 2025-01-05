@@ -81,6 +81,14 @@ class Diematic4Panel(Diematic):
 		#		regLine='';
 
 		#print('==========================================')
+
+		#Bolier power % 613->620
+		reg=self.modBusInterface.masterReadAnalog(self.regulatorAddress,613,8);	
+		if (reg is not None):
+			self.registers.update(reg);
+		else:
+			return(False);
+	
 		#Bolier active mode , update register 644->650
 		reg=self.modBusInterface.masterReadAnalog(self.regulatorAddress,644,7);	
 		if (reg is not None):
