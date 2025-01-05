@@ -203,7 +203,9 @@ class Diematic:
 	@hotWaterNightTargetTemp.setter
 	def hotWaterNightTargetTemp(self,x):
 			#register structure creation, only 5 multiple are usable, temp is in tenth of degree
-			reg=DDModbus.RegisterSet(DDREGISTER.CONS_ECS_NUIT.value,[min(max(round(x/5)*50,TEMP_MIN_ECS*10),TEMP_MAX_ECS*10)]);
+			#reg=DDModbus.RegisterSet(DDREGISTER.CONS_ECS_NUIT.value,[min(max(round(x/5)*50,TEMP_MIN_ECS*10),TEMP_MAX_ECS*10)]);
+			#register structure creation, 1 multiple, temp is in tenth of degree
+			reg=DDModbus.RegisterSet(DDREGISTER.CONS_ECS_NUIT.value,[min(max(round(x/1)*10,TEMP_MIN_ECS*10),TEMP_MAX_ECS*10)]);
 			self.regUpdateRequest.put(reg);
 			
 	@property
@@ -213,7 +215,9 @@ class Diematic:
 	@hotWaterDayTargetTemp.setter
 	def hotWaterDayTargetTemp(self,x):
 			#register structure creation, only 5 multiple are usable, temp is in tenth of degree
-			reg=DDModbus.RegisterSet(DDREGISTER.CONS_ECS.value,[min(max(round(x/5)*50,TEMP_MIN_ECS*10),TEMP_MAX_ECS*10)]);
+			#reg=DDModbus.RegisterSet(DDREGISTER.CONS_ECS.value,[min(max(round(x/5)*50,TEMP_MIN_ECS*10),TEMP_MAX_ECS*10)]);
+			#register structure creation, 1 multiple, temp is in tenth of degree
+			reg=DDModbus.RegisterSet(DDREGISTER.CONS_ECS.value,[min(max(round(x/1)*10,TEMP_MIN_ECS*10),TEMP_MAX_ECS*10)]);
 			self.regUpdateRequest.put(reg);
 			
 	@property

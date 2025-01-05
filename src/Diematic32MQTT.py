@@ -159,8 +159,8 @@ def haSendDiscoveryMessages(client, userdata, message):
 		hassio.addSensor('hot_water_temp',"Température ECS",'temperature','hotWater/temp',None,"°C");
 		hassio.addSelect('hot_water_mode',"Mode ECS",'hotWater/mode','hotWater/mode/set',['AUTO','TEMP','PERM']);
 		hassio.addSensor('hot_water_mode',"Mode ECS",None,'hotWater/mode',None,None);
-		hassio.addNumber('hot_water_temp_day',"Température ECS Jour",'hotWater/dayTemp','hotWater/dayTemp/set',10,80,5,"°C");
-		hassio.addNumber('hot_water_temp_night',"Température ECS Nuit",'hotWater/nightTemp','hotWater/nightTemp/set',10,80,5,"°C");
+		hassio.addNumber('hot_water_temp_day',"Température ECS Jour",'hotWater/dayTemp','hotWater/dayTemp/set',10,80,1,"°C");
+		hassio.addNumber('hot_water_temp_night',"Température ECS Nuit",'hotWater/nightTemp','hotWater/nightTemp/set',10,80,1,"°C");
 		
 		#area A
 		hassio.addSensor('zone_A_temp',"Température Zone A",'temperature','zoneA/temp',None,"°C");
